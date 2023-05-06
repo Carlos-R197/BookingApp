@@ -61,12 +61,20 @@ app.post("/login", async (req, res) => {
   }
 })
 
+app.post("/logout", (req, res) => {
+  res.cookie("token", "").json(true)
+})
+
 app.get("/profile", (req, res) => {
   const { token } = req.cookies
   if (token) {
     jwt.verify(token, jwtSecret, {}, (err, cookieData) => {
       if (err) throw err
-      UserModel.findById({ _id: cookieData.id }).then(user => res.json(user))
+      UserModel.findById({ _id: cookieData.id })
+        .then(user => {
+          const { username, email, _id } = user
+          res.json({ username, email, _id })
+        })
     })
   } else {
     res.json(null)
