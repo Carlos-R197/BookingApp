@@ -16,6 +16,18 @@ export default function PlacesPage() {
   const [ maxGuests, setMaxGuests ] = useState(1)
   const navigate = useNavigate()
 
+  function addNewPlace(ev) {
+    ev.preventDefault()
+    const placeData = { title, address, addedPhotos, 
+      description, perks, extraInfo, 
+      checkInTime, checkOutTime, maxGuests
+    }
+    axios.post("/place", placeData)
+      .then(() => {
+        navigate("/account/places")
+      })
+  }
+
   function uploadByLink(ev) {
     ev.preventDefault()
     axios.post("/upload-by-link", { link: photoLink })
@@ -24,7 +36,7 @@ export default function PlacesPage() {
         setAddedPhotos([...addedPhotos, data])
         setPhotoLink("")
       })
-      .catch(err => console.log(err))
+      .catch(err => console.log("Upload by link error"))
   }
 
   function uploadPhoto(ev) {
