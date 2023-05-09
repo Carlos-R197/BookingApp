@@ -121,8 +121,6 @@ app.post("/place", (req, res) => {
     checkInTime, checkOutTime, maxGuests
   } = req.body
   const { token } = req.cookies
-  // Delete this line later
-  console.log(req.cookies)
   jwt.verify(token, jwtSecret, {}, (err, cookiesData) => {
     if (err) throw err
 
@@ -144,6 +142,18 @@ app.post("/place", (req, res) => {
       .catch(err => {
         console.log(err)
         res.status(400).json()
+      })
+  })
+})
+
+app.get("/place", (req, res) => {
+  const { token } = req.cookies
+  jwt.verify(token, jwtSecret, {}, (err, cookiesData) => {
+    if (err) throw err
+
+    PlaceModel.find({ owner: cookiesData.id })
+      .then(places => {
+        res.status(200).json(places)
       })
   })
 })
