@@ -34,17 +34,27 @@ export default function PlacesFormPage() {
     }
   }, [id])
 
-  function addNewPlace(ev) {
+  function savePlace(ev) {
     ev.preventDefault()
     const placeData = { title, address, addedPhotos, 
       description, perks, extraInfo, 
       checkInTime, checkOutTime, maxGuests
     }
-    axios.post("/place", placeData)
-      .then(() => {
-        alert("Place has been successfully added")
-        navigate("/account/places")
-      })
+    // If id has a value it is editing, not creating.
+    if (id) {
+      console.log(id)
+      axios.put("/place/" + id, placeData)
+        .then(res => {
+          alert("Modification has been saved")
+          navigate("/account/places")
+        })
+    } else {
+      axios.post("/place", placeData)
+        .then(res => {
+          alert("Place has been successfully added")
+          navigate("/account/places")
+        })
+    }
   }
 
   function uploadByLink(ev) {
@@ -85,7 +95,7 @@ export default function PlacesFormPage() {
     <div>
       <AccountNav />
       <div>
-        <form onSubmit={addNewPlace}>
+        <form onSubmit={savePlace}>
           <h2 className="text-xl mt-4 font-semibold">Title</h2>
           <input type="text" placeholder="My lovely apartment" value={title} onChange={ev => setTitle(ev.target.value)}/>
           <h2 className="text-xl mt-4 font-semibold">Address</h2>

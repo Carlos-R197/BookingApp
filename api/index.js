@@ -23,7 +23,6 @@ app.use(cors({
   origin: "http://127.0.0.1:5173"
 }))
 
-console.log(process.env.MONGO_URL)
 mongoose.connect(process.env.MONGO_URL)
 
 app.get("/test", (req, res) => {
@@ -174,6 +173,35 @@ app.get("/place/:id", (req, res) => {
         throw err
       }
     })
+})
+
+app.put("/place/:id", async (req, res) => {
+  const { token } = req.cookies
+  const { title, address, addedPhotos,
+    description, perks, extraInfo, 
+    checkInTime, checkOutTime, maxGuests
+  } = req.body
+  console.log(req.params)
+  jwt.verify(token, jwtSecret, {}, async (err, cookiesData) => {
+    if (err) throw err
+
+    const placeDoc = await PlaceModel.findById(req.params.id)
+    if (placeDoc.owner.toString() !== cookiesData.id) {
+      res.status(403).json()
+    } else { 
+      placeDoc.title = title
+      placeDoc.address = address
+      placeDoc.photos = addedPhotos
+      placeDoc.description = description
+      placeDoc.perks = perks
+      placeDoc.extraInfo = extraInfo
+      placeDoc.checkIn  = checkInTime
+      placeDoc.checkOut = checkOutTime
+      placeDoc.maxGuests = maxGuests
+      await placeDoc.save()
+      res.json("Saved")
+    }
+  })
 })
 
 app.listen(4000)
