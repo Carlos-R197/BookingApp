@@ -25,11 +25,19 @@ export default function PlacesPage() {
         </Link>
       </div>
       <div className="mt-4">
-        {places.map((place, index) => {
-          <div key={index}>
-            
-          </div>
-        })}
+        {places.length > 0 && places.map((place, index) => ( 
+          <Link className="flex cursor-pointer bg-gray-100 rounded-2xl p-4 gap-4" key={index} to={"/account/places/" + place._id}>
+            <div className="w-32 h-32 bg-gray-300">
+              {place.photos.length > 0 && (
+                <img src={place.photos[0]} alt=""/>
+              )}
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold">{place.title}</h2>
+              <p className="text-sm mt-2">{place.description}</p>
+            </div>
+          </Link>
+        ))}
       </div>
     </div>
   )

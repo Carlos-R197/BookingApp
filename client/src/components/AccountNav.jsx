@@ -7,7 +7,6 @@ export default function AccountNav() {
   const subpage = pathname.split("/")?.[2]
 
   function linkClasses(type) {
-    console.log(subpage)
     if (type === subpage) {
       return "flex py-2 px-6 gap-1 bg-primary text-white rounded-full"  
     } else {

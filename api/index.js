@@ -39,10 +39,10 @@ app.post("/register", async (req, res) => {
       password: await bcrypt.hash(password, bcryptSalt)
     })
     res.status(201).json(user)
-  } catch (e) {
-    if (e.code == 11000) {
-      console.log("Duplicate key: ", e.keyValue)
-      res.status(422).json(e)
+  } catch (err) {
+    if (err.code == 11000) {
+      console.log("Duplicate key: ", err.keyValue)
+      res.status(422).json(err)
     }
     //console.log(e.constructor.name)
   }
@@ -156,6 +156,24 @@ app.get("/place", (req, res) => {
         res.status(200).json(places)
       })
   })
+})
+
+app.get("/place/:id", (req, res) => {
+  PlaceModel.findById(req.params.id)
+    .then(place => {
+      if (place === null) {
+        res.status(404).json()
+      } else {
+        res.json(place)
+      }
+    })
+    .catch(err => {
+      if (err instanceof mongoose.Error.CastError) {
+        res.status(422).json()
+      } else {
+        throw err
+      }
+    })
 })
 
 app.listen(4000)
