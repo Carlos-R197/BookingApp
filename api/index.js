@@ -114,6 +114,11 @@ app.post("/upload", photoMiddleware.array("photos", 10), (req, res) => {
   res.json(uploadedFiles)
 })
 
+//TODO: implement
+app.delete("/upload/:id", async (req, res) => {
+  res.status(501).json()
+})
+
 app.post("/place", (req, res) => {
   const { title, address, addedPhotos,
     description, perks, extraInfo, 
