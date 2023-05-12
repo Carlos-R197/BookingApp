@@ -15,12 +15,13 @@ export default function PlacesFormPage() {
   const [ checkInTime, setCheckInTime ] = useState("")
   const [ checkOutTime, setCheckOutTime ] = useState("")
   const [ maxGuests, setMaxGuests ] = useState(1)
+  const [ price, setPrice ] = useState(5) 
   const navigate = useNavigate()
 
   useEffect(() => {
     if (id) {
       axios.get("/place/" + id)
-        .then(({data}) => {
+        .then(({ data }) => {
           setTitle(data.title)
           setAddress(data.address)
           setAddedPhotos(data.photos)
@@ -30,6 +31,7 @@ export default function PlacesFormPage() {
           setCheckInTime(data.checkIn)
           setCheckOutTime(data.checkOut)
           setMaxGuests(data.maxGuests)
+          setPrice(data.price)
         })
     }
   }, [id])
@@ -38,7 +40,8 @@ export default function PlacesFormPage() {
     ev.preventDefault()
     const placeData = { title, address, addedPhotos, 
       description, perks, extraInfo, 
-      checkInTime, checkOutTime, maxGuests
+      checkInTime, checkOutTime, maxGuests,
+      price
     }
     // If id has a value it is editing, not creating.
     if (id) {
@@ -64,7 +67,6 @@ export default function PlacesFormPage() {
         setAddedPhotos([...addedPhotos, data])
         setPhotoLink("")
       })
-      .catch(err => console.log("Upload by link error"))
   }
 
   function removePhoto(photoName) {
@@ -198,7 +200,7 @@ export default function PlacesFormPage() {
           <span className="text-sm text-gray-500">house rules, etc.</span>
           <textarea value={extraInfo} onChange={ev => setExtraInfo(ev.target.value)}/>
           <h2 className="text-2xl mt-4 font-semibold">Check in & check out times</h2>
-          <div className="grid sm:grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
             <div className="mt-2 mb-1">
               <h3>Check in time</h3>
               <input type="text" placeholder="14" value={checkInTime} onChange={ev => setCheckInTime(ev.target.value)}/>
@@ -210,6 +212,10 @@ export default function PlacesFormPage() {
             <div className="mt-2 mb-1">
               <h3>Max number of guests</h3>
               <input type="number" value={maxGuests} onChange={ev => setMaxGuests(ev.target.value)}/>
+            </div>
+            <div className="mt-2 mb-1">
+              <h3>Price per night</h3>
+              <input type="number" value={price} onChange={ev => setPrice(ev.target.value)}/>
             </div>
           </div>
           <button className="primary my-3" type="submit">Save</button>

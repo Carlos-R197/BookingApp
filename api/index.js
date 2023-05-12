@@ -116,13 +116,21 @@ app.post("/upload", photoMiddleware.array("photos", 10), (req, res) => {
 
 //TODO: implement
 app.delete("/upload/:id", async (req, res) => {
-  res.status(501).json()
+  //res.status(501).json()
+  const { id } = req.params.id
+  console.log(id)
+  // fs.unlink(`${__dirname}\\uploads\\${id}`, err => {
+  //   if (err) throw err
+
+  //   res.json("Deleted image successfully")
+  // })
 })
 
 app.post("/place", (req, res) => {
   const { title, address, addedPhotos,
     description, perks, extraInfo, 
-    checkInTime, checkOutTime, maxGuests
+    checkInTime, checkOutTime, maxGuests,
+    price
   } = req.body
   const { token } = req.cookies
   jwt.verify(token, jwtSecret, {}, (err, cookiesData) => {
@@ -138,7 +146,8 @@ app.post("/place", (req, res) => {
       extraInfo, 
       checkIn: checkInTime, 
       checkOut: checkOutTime, 
-      maxGuests 
+      maxGuests,
+      price 
     }).then(place => {
         console.log(place)
         res.status(201).json(place)
@@ -150,7 +159,7 @@ app.post("/place", (req, res) => {
   })
 })
 
-app.get("/place", (req, res) => {
+app.get("/userPlace", (req, res) => {
   const { token } = req.cookies
   jwt.verify(token, jwtSecret, {}, (err, cookiesData) => {
     if (err) throw err
@@ -160,6 +169,11 @@ app.get("/place", (req, res) => {
         res.status(200).json(places)
       })
   })
+})
+
+app.get("/place", async (req, res) => {
+  const placeDocs = await PlaceModel.find({})
+  res.json(placeDocs)
 })
 
 app.get("/place/:id", (req, res) => {
@@ -184,9 +198,9 @@ app.put("/place/:id", async (req, res) => {
   const { token } = req.cookies
   const { title, address, addedPhotos,
     description, perks, extraInfo, 
-    checkInTime, checkOutTime, maxGuests
+    checkInTime, checkOutTime, maxGuests,
+    price
   } = req.body
-  console.log(req.params)
   jwt.verify(token, jwtSecret, {}, async (err, cookiesData) => {
     if (err) throw err
 
@@ -203,6 +217,7 @@ app.put("/place/:id", async (req, res) => {
       placeDoc.checkIn  = checkInTime
       placeDoc.checkOut = checkOutTime
       placeDoc.maxGuests = maxGuests
+      placeDoc.price = price
       await placeDoc.save()
       res.json("Saved")
     }
