@@ -1,10 +1,30 @@
 import { useState } from "react"
-import { differenceInCalendarDays, parse } from "date-fns"
+import { differenceInCalendarDays, parse, format, addDays } from "date-fns"
+import axios from "axios"
+import { useNavigate } from "react-router-dom"
 
 export default function BookingWidget({ place }) {
-  const [ checkIn, setCheckIn ] = useState("2023-05-12")
-  const [ checkOut, setCheckOut ] = useState("2023-05-12")
+  const [ checkIn, setCheckIn ] = useState(format(new Date(), "yyyy-MM-dd"))
+  const [ checkOut, setCheckOut ] = useState(format(addDays(new Date(), 1), "yyyy-MM-dd"))
   const [ maxGuests, setMaxGuests ] = useState(1)
+  const [ fullname, setFullname ] = useState("")
+  const [ phoneNumber, setPhoneNumber ] = useState("")
+  const navigate = useNavigate()
+
+  const diffDays = differenceInCalendarDays(new Date(checkOut), new Date(checkIn))
+
+  async function bookPlace() {
+    const data = { placeId: place._id, checkIn, checkOut,
+      maxGuests, fullname, phoneNumber, price: diffDays * place.price 
+    }
+    const res = await axios.post("/booking", data)
+    if (res.status === 201) {
+      alert("Your booking has been processed successfully")
+      navigate("/account/bookings/" + res.data._id)
+    } else {
+      console.log("Something went wrong")
+    }
+  }
 
   return (
     <div>
@@ -24,14 +44,26 @@ export default function BookingWidget({ place }) {
             </div>
           </div>
           <div className="p-2 px-4 border-t-2">
-              <label htmlFor="number-guests">Max number of guests </label>
+              <label htmlFor="number-guests">Max number of guests: </label>
               <input id="number-guests" type="number" value={maxGuests} onChange={ev => setMaxGuests(ev.target.value)}/>
           </div>
+          {diffDays > 0 && (
+            <div>
+              <div className="mb-2 px-4">
+                <label htmlFor="fullname-input">Full name: </label>
+                <input id="fullname-input" type="text" value={fullname} onChange={ev => setFullname(ev.target.value)}/>
+              </div>
+              <div className="mb-2 px-4">
+                  <label htmlFor="phone-number-input">Phone number: </label>
+                  <input id="phone-number-input" type="tel" value={phoneNumber} onChange={ev => setPhoneNumber(ev.target.value)}/>
+              </div>
+            </div>
+          )}
         </div>
-        <button className="primary mt-4">Book this place</button>
-        { differenceInCalendarDays(new Date(checkOut), new Date(checkIn)) > 0 && (
+        <button className="primary mt-4" onClick={bookPlace}>Book this place</button>
+        {diffDays > 0 && (
           <div className="font-semibold text-center">
-            ${differenceInCalendarDays(new Date(checkOut), new Date(checkIn)) * place.price} total
+            ${diffDays * place.price} total
           </div>
         )}
       </div>

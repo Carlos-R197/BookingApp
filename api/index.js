@@ -3,6 +3,7 @@ const cors = require("cors")
 const mongoose = require("mongoose")
 const UserModel = require("./models/User.js")
 const PlaceModel = require("./models/Place.js")
+const BookingModel = require("./models/Booking.js")
 const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
 const cookieParser = require("cookie-parser")
@@ -222,6 +223,14 @@ app.put("/place/:id", async (req, res) => {
       res.json("Saved")
     }
   })
+})
+
+app.post("/booking", async (req, res) => {
+  const { placeId, checkIn, checkOut, maxGuests, fullname, phoneNumber, price } = req.body
+  const bookingDoc = await  BookingModel.create({
+    placeId, checkIn, checkOut, amountGuests: maxGuests, fullname, phoneNumber, price 
+  })
+  res.status(201).json(bookingDoc)
 })
 
 app.listen(4000)
