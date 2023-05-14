@@ -227,10 +227,33 @@ app.put("/place/:id", async (req, res) => {
 
 app.post("/booking", async (req, res) => {
   const { placeId, checkIn, checkOut, maxGuests, fullname, phoneNumber, price } = req.body
-  const bookingDoc = await  BookingModel.create({
-    placeId, checkIn, checkOut, amountGuests: maxGuests, fullname, phoneNumber, price 
+  jwt.verify(req.cookies.token, jwtSecret, {}, async (err, cookiesData) => {
+    if (err) throw err
+
+    const userId = cookiesData.id
+    const bookingDoc = await BookingModel.create({
+      place: placeId, user: userId, checkIn, checkOut, amountGuests: maxGuests, fullname, phoneNumber, price 
+    })
+    res.status(201).json(bookingDoc)
   })
-  res.status(201).json(bookingDoc)
+})
+
+app.get("/booking", async (req, res) => {
+  jwt.verify(req.cookies.token, jwtSecret, {}, async (err, cookiesData) => {
+    if (err) throw err
+
+    const bookings = await BookingModel.find({ user: cookiesData.id }).populate("place")
+    res.json(bookings)
+  })
+})
+
+app.get("/booking/:id", async (req, res) => {
+  const bookingDoc = await BookingModel.findById(req.params.id).populate("place")
+  if (bookingDoc) {
+    res.json(bookingDoc)
+  } else {
+    res.status(404).json()
+  }
 })
 
 app.listen(4000)

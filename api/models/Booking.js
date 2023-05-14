@@ -1,7 +1,8 @@
 const mongoose = require("mongoose")
 
 const bookingSchema = mongoose.Schema({
-  placeId: { type: mongoose.Schema.Types.ObjectId, ref: "Place", required: true },
+  place: { type: mongoose.Schema.Types.ObjectId, ref: "Place", required: true },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   checkIn: { type: Date, required: true },
   checkOut: { type: Date, required: true },
   fullname: { type: String, required: true },
