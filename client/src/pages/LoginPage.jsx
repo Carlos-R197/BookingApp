@@ -2,6 +2,8 @@ import axios from "axios"
 import { useContext, useState } from "react"
 import { Link, Navigate } from "react-router-dom"
 import { UserContext } from "../context/UserContext"
+import EmailInput from "../components/EmailInput"
+import PasswordInput from "../components/PasswordInput"
 
 export default function LoginPage() {
   const [ email, setEmail ] = useState("")
@@ -16,8 +18,19 @@ export default function LoginPage() {
       setUser(data)
       alert("Login successful")
       setRedirect(true)
-    } catch (e) {
-      alert("Login failed")
+    } catch (err) {
+      if (err.response.status == 422) {
+        const errors = err.response.data
+        let msg = ""
+        errors.forEach(error => {
+          msg += error.msg
+        });
+        alert(msg)
+      } else if (err.response.status == 404) {
+        alert("Credentials weren't found. Email or password are incorrect.")
+      } else {
+        alert("Login failed, try again later.")
+      }
     }
   }
 
@@ -30,10 +43,10 @@ export default function LoginPage() {
       <div className="mb-32">
         <h1 className="text-4xl text-center mb-4">Login</h1>
         <form className="max-w-lg" onSubmit={handleLoginSubmit}>
-          <input type="email" placeholder="email@gmail.com" value={email} onChange={ev => setEmail(ev.target.value)}/>
-          <input type="password" placeholder="your_password" value={password} onChange={ev => setPassword(ev.target.value)}/>
-          <button className="primary" onClick={handleLoginSubmit}>Login</button>
-          <div className="text-center text-gray-500">
+          <EmailInput value={email} setValue={setEmail}/>
+          <PasswordInput value={password} setValue={setPassword}/>
+          <button className="primary mt-5" onClick={handleLoginSubmit}>Login</button>
+          <div className="text-center text-gray-500 mt-1">
             Don't have an account yet? <Link className="text-black underline" to={"/register"}>Register now</Link> 
           </div>
         </form>
