@@ -13,6 +13,10 @@ export default function PlacesPage() {
         setPlaces(data)
       })
   }, [])
+  
+  if (!places) {
+    return "You have no places"
+  }
 
   return (
     <div>

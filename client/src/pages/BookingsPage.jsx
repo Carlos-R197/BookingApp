@@ -26,6 +26,10 @@ export default function BookingsPage() {
       return diff + " nights" 
     }
   }
+  
+  if (!bookings) {
+    return "You have no bookings"
+  }
 
   return (
     <div>

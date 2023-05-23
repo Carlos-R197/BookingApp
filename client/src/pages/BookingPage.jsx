@@ -14,7 +14,6 @@ export default function BookingPage() {
       const fetchBooking = async () => {
         const res = await axios.get("/booking/" + id)
         setBooking(res.data)
-        console.log(!!booking)
       }
       fetchBooking()
     }

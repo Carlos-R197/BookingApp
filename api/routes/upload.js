@@ -4,22 +4,22 @@ const multer = require("multer")
 const imageDownloader = require("image-downloader")
 const fs = require("fs")
 const { body, matchedData } = require("express-validator")
+const { cwd } = require("process")
 
 router.post(
   "/upload-by-link",
   body("link").isURL(), 
-  (req, res) => {
-  const { link } = matchedData(req)
-  const newName = Date.now() + ".jpg"
-  imageDownloader.image({ url: link, dest: __dirname + "\\uploads\\" + newName })
-    .then(({ filename }) => {
+  async (req, res) => {
+    const { link } = matchedData(req)
+    const newName = Date.now() + ".jpg"
+    try {
+      const filename = await imageDownloader.image({ url: link, dest: cwd() + "\\uploads\\" + newName })
       console.log("Saved to ", filename)
       res.json(newName)
-    })
-    .catch(err => {
+    } catch (err) {
       console.error(err)
       res.status(400).json()
-    })
+    }
 })
 
 const photoMiddleware = multer({dest: "uploads"})

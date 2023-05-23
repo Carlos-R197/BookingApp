@@ -8,19 +8,34 @@ import PlaceGallery from "../components/PlaceGallery"
 export default function PlacePage() {
   const { id } = useParams()
   const [ place, setPlace] = useState()
+  const [ errorCode, setErrorCode ] = useState(0)
 
   useEffect(() => {
     const fetchPlace = async () => {
       if (!id) return
-
-      const { data } = await axios.get("/place/" + id)
-      setPlace(data)
+      try {
+        const { data } = await axios.get("/place/" + id)
+        setPlace(data)
+      } catch (err) {
+        if (err.response.status === 422) {
+          setErrorCode(422)
+        } else if (err.response.status === 404) {
+          setErrorCode(404)
+        }
+      }
     }
 
     fetchPlace()
   }, [id])
 
-  if (!place) return "Loading..."
+  if (!place && !errorCode) return "Loading..."
+  else if (errorCode) {
+    if (errorCode === 404) {
+      return "Place not found"
+    } else if (errorCode === 422) {
+      return "Request invalid"
+    }
+  }
   else {
     return (
       <div className="bg-gray-100 p-8 mt-4 -mx-8">

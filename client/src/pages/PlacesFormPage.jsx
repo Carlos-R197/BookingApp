@@ -20,24 +20,26 @@ export default function PlacesFormPage() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (id) {
-      axios.get("/place/" + id)
-        .then(({ data }) => {
-          setTitle(data.title)
-          setAddress(data.address)
-          setAddedPhotos(data.photos)
-          setDescription(data.description)
-          setPerks(data.perks)
-          setExtraInfo(data.extraInfo)
-          setCheckInTime(data.checkIn)
-          setCheckOutTime(data.checkOut)
-          setMaxGuests(data.maxGuests)
-          setPrice(data.price)
-        })
+    async function fetchPlace() {
+      if (id) {
+        const { data } = await axios.get("/place/" + id)
+        setTitle(data.title)
+        setAddress(data.address)
+        setAddedPhotos(data.photos)
+        setDescription(data.description)
+        setPerks(data.perks)
+        setExtraInfo(data.extraInfo)
+        setCheckInTime(data.checkIn)
+        setCheckOutTime(data.checkOut)
+        setMaxGuests(data.maxGuests)
+        setPrice(data.price)
+      }
     }
+
+    fetchPlace()
   }, [id])
 
-  function savePlace(ev) {
+  async function savePlace(ev) {
     ev.preventDefault()
     const placeData = { title, address, addedPhotos, 
       description, perks, extraInfo, 
@@ -45,18 +47,25 @@ export default function PlacesFormPage() {
       price
     }
     // If id has a value it is editing, not creating.
-    if (id) {
-      axios.put("/place/" + id, placeData)
-        .then(res => {
-          alert("Modification has been saved")
-          navigate("/account/places")
+    try {
+      if (id) {
+        const res = await axios.put("/place/" + id, placeData)
+        alert("Modification has been saved")
+        navigate("/account/places")
+      } else {
+        const res = await axios.post("/place", placeData)
+        alert("Place has been successfully added")
+        navigate("/account/places")
+      }
+    } catch (err) {
+      if (err.response.status == 422) {
+        const errors = err.response.data
+        let msg = ""
+        errors.forEach(error => {
+          msg += error.msg + "\n"
         })
-    } else {
-      axios.post("/place", placeData)
-        .then(res => {
-          alert("Place has been successfully added")
-          navigate("/account/places")
-        })
+        alert(msg)
+      }
     }
   }
 
@@ -204,19 +213,22 @@ export default function PlacesFormPage() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
             <div className="mt-2 mb-1">
               <h3>Check in time</h3>
-              <input type="text" placeholder="14" value={checkInTime} onChange={ev => setCheckInTime(ev.target.value)}/>
+              <input type="text" placeholder="14" value={checkInTime} 
+                onChange={ev => setCheckInTime(ev.target.value)} min={0} max={24} />
             </div>
             <div className="mt-2 mb-1">
               <h3>Check out time</h3>
-              <input type="text" placeholder="11" value={checkOutTime} onChange={ev => setCheckOutTime(ev.target.value)}/>
+              <input type="text" placeholder="11" value={checkOutTime} 
+                onChange={ev => setCheckOutTime(ev.target.value)} min={0} max={24} />
             </div>
             <div className="mt-2 mb-1">
               <h3>Max number of guests</h3>
-              <input type="number" value={maxGuests} onChange={ev => setMaxGuests(ev.target.value)}/>
+              <input type="number" value={maxGuests} 
+                onChange={ev => setMaxGuests(ev.target.value)} min={1} max={20} />
             </div>
             <div className="mt-2 mb-1">
               <h3>Price per night</h3>
-              <input type="number" value={price} onChange={ev => setPrice(ev.target.value)}/>
+              <input type="number" value={price} onChange={ev => setPrice(ev.target.value)} min={0}/>
             </div>
           </div>
           <button className="primary my-3" type="submit">Save</button>

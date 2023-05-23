@@ -7,16 +7,16 @@ const { body, validationResult, matchedData, cookie, param } = require("express-
 const mongoose = require("mongoose")
 
 const placeValidationChain = () => [
-  body("title").trim().isString().isLength({ min: 3}),
-  body("address").trim().isString().isLength({ min: 3 }),
+  body("title").trim().isString().isLength({ min: 3 }).withMessage("Title must be at least 3 characters long"),
+  body("address").trim().isString().isLength({ min: 3 }).withMessage("Address must be at least 3 characters long"),
   body("addedPhotos").isArray(),
-  body("description").trim().isString().isLength({ min: 3}),
+  body("description").trim().isString().isLength({ min: 3 }).withMessage("Description must be at least 3 characters long"),
   body("perks").isArray(),
   body("extraInfo").trim().isString(),
-  body("checkInTime").isNumeric(),
-  body("checkOutTime").isNumeric(),
-  body("maxGuests").isInt({ min: 1, max: 20}),
-  body("price").isCurrency(),
+  body("checkInTime").isNumeric().withMessage("Not a valid hour"),
+  body("checkOutTime").isNumeric().withMessage("Not a valid hour"),
+  body("maxGuests").isInt({ min: 1, max: 20}).withMessage("Your place must accept between 1 and 20 guests"),
+  body("price").isCurrency().withMessage("Not a valid amount"),
   cookie("token").isJWT()
 ]
 
@@ -80,9 +80,23 @@ router.get(
   }
 )
 
-router.get("/place", async (req, res) => {
-  const placeDocs = await PlaceModel.find({})
-  res.json(placeDocs)
+// Should return all places except the ones owned by the user requesting them
+router.get(
+  "/place",
+  cookie("token"), 
+  async (req, res) => {
+    const result = validationResult(req)
+    if (!result.isEmpty) {
+      return res.status(400).json(result.array())
+    }
+
+    const { token } = matchedData(req)
+    jwt.verify(token, jwtSecret, {}, async (err, cookiesData) => {
+      if (err) throw err
+
+      const placeDocs = await PlaceModel.find({ owner: { $ne: cookiesData.id } })
+      res.json(placeDocs)
+    })
 })
 
 router.get(
