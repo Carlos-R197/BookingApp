@@ -1,9 +1,8 @@
 const express = require("express")
 const router = express.Router()
 const BookingModel = require("../models/Booking.js")
-const jwt = require("jsonwebtoken")
-const jwtSecret = "fklfsd45sv4anewkrhk24234aloqjr9"
 const { param, validationResult, matchedData, cookie, body } = require("express-validator")
+const { getDataFromJWT } = require("./commons.js")
 
 router.post(
   "/booking",
@@ -24,15 +23,12 @@ router.post(
     const { placeId, checkIn, checkOut, maxGuests,
       fullname, phoneNumber, price, token 
     } = matchedData(req)
-    jwt.verify(token, jwtSecret, {}, async (err, cookiesData) => {
-      if (err) throw err
 
-      const userId = cookiesData.id
-      const bookingDoc = await BookingModel.create({
-        place: placeId, user: userId, checkIn, checkOut, amountGuests: maxGuests, fullname, phoneNumber, price 
-      })
-      res.status(201).json(bookingDoc)
+    const cookiesData = await getDataFromJWT(token)
+    const bookingDoc = await BookingModel.create({
+      place: placeId, user: cookiesData.id, checkIn, checkOut, amountGuests: maxGuests, fullname, phoneNumber, price 
     })
+    res.status(201).json(bookingDoc)
   }
 )
 
@@ -45,12 +41,9 @@ router.get(
       return res.status(422).json(result.array())
     }
     const { token } = matchedData(req)
-    jwt.verify(token, jwtSecret, {}, async (err, cookiesData) => {
-      if (err) throw err
-
-      const bookings = await BookingModel.find({ user: cookiesData.id }).populate("place")
-      res.json(bookings)
-    })
+    const cookiesData = await getDataFromJWT(token)
+    const bookings = await BookingModel.find({ user: cookiesData.id }).populate("place")
+    res.json(bookings)
   }
 )
 
@@ -64,7 +57,6 @@ router.get(
     }
 
     const { id } = matchedData(req)
-
     const bookingDoc = await BookingModel.findById(id).populate("place")
     if (bookingDoc) {
       res.json(bookingDoc)

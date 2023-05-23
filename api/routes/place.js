@@ -1,10 +1,9 @@
 const express = require("express")
 const router = express.Router()
 const PlaceModel = require("../models/Place.js")
-const jwt = require("jsonwebtoken")
-const jwtSecret = "fklfsd45sv4anewkrhk24234aloqjr9"
 const { body, validationResult, matchedData, cookie, param } = require("express-validator")
 const mongoose = require("mongoose")
+const { getDataFromJWT } = require("./commons.js")
 
 const placeValidationChain = () => [
   body("title").trim().isString().isLength({ min: 3 }).withMessage("Title must be at least 3 characters long"),
@@ -36,28 +35,26 @@ router.post(
       checkInTime, checkOutTime, maxGuests,
       price, token
     } = matchedData(req)
-    jwt.verify(token, jwtSecret, {}, async (err, cookiesData) => {
-      if (err) throw err
-      try {
-        const placeDoc = await PlaceModel.create({
-          owner: cookiesData.id,
-          title, 
-          address, 
-          photos: addedPhotos, 
-          description, 
-          perks, 
-          extraInfo, 
-          checkIn: checkInTime, 
-          checkOut: checkOutTime, 
-          maxGuests,
-          price 
-        })
-        return res.status(201).json(placeDoc)
-      } catch (err) {
-        console.log(err)
-        return res.status(400).json()
-      }
-    })
+    const cookiesData = await getDataFromJWT(token)
+    try {
+      const placeDoc = await PlaceModel.create({
+        owner: cookiesData.id,
+        title, 
+        address, 
+        photos: addedPhotos, 
+        description, 
+        perks, 
+        extraInfo, 
+        checkIn: checkInTime, 
+        checkOut: checkOutTime, 
+        maxGuests,
+        price 
+      })
+      return res.status(201).json(placeDoc)
+    } catch (err) {
+      console.log(err)
+      return res.status(400).json()
+    }
   }
 )
 
@@ -71,12 +68,9 @@ router.get(
     }
 
     const { token } = matchedData(req)
-    jwt.verify(token, jwtSecret, {}, async (err, cookiesData) => {
-      if (err) throw err
-
-      const placeDocs = await PlaceModel.find({ owner: cookiesData.id })
-      return res.status(200).json(placeDocs)
-    })
+    const cookiesData = await getDataFromJWT(token)
+    const placeDocs = await PlaceModel.find({ owner: cookiesData.id })
+    return res.status(200).json(placeDocs)
   }
 )
 
@@ -91,12 +85,9 @@ router.get(
     }
 
     const { token } = matchedData(req)
-    jwt.verify(token, jwtSecret, {}, async (err, cookiesData) => {
-      if (err) throw err
-
-      const placeDocs = await PlaceModel.find({ owner: { $ne: cookiesData.id } })
-      res.json(placeDocs)
-    })
+    const cookiesData = await getDataFromJWT(token)
+    const placeDocs = await PlaceModel.find({ owner: { $ne: cookiesData.id } })
+    res.json(placeDocs)
 })
 
 router.get(
@@ -140,27 +131,24 @@ router.put(
       checkInTime, checkOutTime, maxGuests,
       price, token, id
     } = matchedData(req)
-    jwt.verify(token, jwtSecret, {}, async (err, cookiesData) => {
-      if (err) throw err
-
-      const placeDoc = await PlaceModel.findById(id)
-      if (placeDoc.owner.toString() !== cookiesData.id) {
-        return res.status(403).json()
-      } else { 
-        placeDoc.title = title
-        placeDoc.address = address
-        placeDoc.photos = addedPhotos
-        placeDoc.description = description
-        placeDoc.perks = perks
-        placeDoc.extraInfo = extraInfo
-        placeDoc.checkIn  = checkInTime
-        placeDoc.checkOut = checkOutTime
-        placeDoc.maxGuests = maxGuests
-        placeDoc.price = price
-        await placeDoc.save()
-        res.json("Saved")
-      }
-    })
+    const cookiesData = await getDataFromJWT(token)
+    const placeDoc = await PlaceModel.findById(id)
+    if (placeDoc.owner.toString() !== cookiesData.id) {
+      return res.status(403).json()
+    } else { 
+      placeDoc.title = title
+      placeDoc.address = address
+      placeDoc.photos = addedPhotos
+      placeDoc.description = description
+      placeDoc.perks = perks
+      placeDoc.extraInfo = extraInfo
+      placeDoc.checkIn  = checkInTime
+      placeDoc.checkOut = checkOutTime
+      placeDoc.maxGuests = maxGuests
+      placeDoc.price = price
+      await placeDoc.save()
+      res.json("Saved")
+    }
   }
 )
 

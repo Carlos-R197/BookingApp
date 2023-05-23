@@ -1,10 +1,10 @@
 const express = require("express")
 const router = express.Router()
 const jwt = require("jsonwebtoken")
-const jwtSecret = "fklfsd45sv4anewkrhk24234aloqjr9"
 const bcrypt = require("bcryptjs")
 const UserModel = require("../models/User.js")
 const { body, validationResult, matchedData, cookie } = require("express-validator")
+const { getDataFromJWT } = require("./commons.js")
 
 const bcryptSalt = bcrypt.genSaltSync(10)
 
@@ -82,16 +82,13 @@ router.post(
 
 router.get(
   "/profile", 
-  (req, res) => {
+  async (req, res) => {
     const { token } = req.cookies
     if (token) {
-      jwt.verify(token, jwtSecret, {}, async (err, cookieData) => {
-        if (err) throw err
-
-        const userDoc = await UserModel.findById({ _id: cookieData.id })
-        const { username, email, _id } = userDoc
-        return res.json({ username, email, _id })
-      })
+      const cookiesData = await getDataFromJWT(token)
+      const userDoc = await UserModel.findById({ _id: cookiesData.id })
+      const { username, email, _id } = userDoc
+      return res.json({ username, email, _id })
     } else {
       return res.json(null)
     }
