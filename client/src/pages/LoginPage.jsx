@@ -24,7 +24,7 @@ export default function LoginPage() {
         let msg = ""
         errors.forEach(error => {
           msg += error.msg
-        });
+        })
         alert(msg)
       } else if (err.response.status == 404) {
         alert("Credentials weren't found. Email or password are incorrect.")
@@ -42,7 +42,7 @@ export default function LoginPage() {
     <div className="mt-4 grow flex items-center justify-around">
       <div className="mb-32">
         <h1 className="text-4xl text-center mb-4">Login</h1>
-        <form className="max-w-lg" onSubmit={handleLoginSubmit}>
+        <form className="w-96" onSubmit={handleLoginSubmit}>
           <EmailInput value={email} setValue={setEmail}/>
           <PasswordInput value={password} setValue={setPassword}/>
           <button className="primary mt-5" onClick={handleLoginSubmit}>Login</button>

@@ -14,7 +14,7 @@ export default function EmailInput({ value, setValue }) {
 
   return (
     <>
-      <input 
+      <input
         type="email" 
         placeholder="Email address" 
         value={value} 
@@ -24,7 +24,7 @@ export default function EmailInput({ value, setValue }) {
         onChange={ev => setValue(ev.target.value)}
         onBlur={ev => onInputBlur(ev.target.value)}
         />
-      <span className="text-red-500">{errorMessage}</span>
+      <div className="text-red-500">{errorMessage}</div>
     </>
   )
 }

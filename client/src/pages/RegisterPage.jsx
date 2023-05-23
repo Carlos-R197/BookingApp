@@ -48,7 +48,7 @@ export default function RegisterPage() {
     <div className="mt-4 grow flex items-center justify-around">
       <div className="mb-32">
         <h1 className="text-4xl text-center mb-4">Register</h1>
-        <form className="max-w-lg" onSubmit={registerUser}>
+        <form className="w-96" onSubmit={registerUser}>
           <input type="text" placeholder="John Doe" value={username} required
             onChange={ev => setUsername(ev.target.value)} onBlur={onUsernameInputBlur}/>
           <span className="text-red-500">{usernameError}</span>

@@ -3,36 +3,75 @@ const router = express.Router()
 const BookingModel = require("../models/Booking.js")
 const jwt = require("jsonwebtoken")
 const jwtSecret = "fklfsd45sv4anewkrhk24234aloqjr9"
+const { param, validationResult, matchedData, cookie, body } = require("express-validator")
 
-router.post("/booking", async (req, res) => {
-  const { placeId, checkIn, checkOut, maxGuests, fullname, phoneNumber, price } = req.body
-  jwt.verify(req.cookies.token, jwtSecret, {}, async (err, cookiesData) => {
-    if (err) throw err
+router.post(
+  "/booking",
+  body("placeId").isLength({ min: 24, max: 24 }),
+  body("checkIn").isNumeric(),
+  body("checkOut").isNumeric(),
+  body("maxGuests").isInt({ min: 1, max: 20 }),
+  body("fullname").isString().trim().isLength({ min: 3, max: 50 }),
+  body("phoneNumber").isMobilePhone(),
+  body("price").isCurrency(),
+  cookie("token").isJWT(),   
+  async (req, res) => {
+    const result = validationResult(req)
+    if (!result.isEmpty()) {
+      return res.status(422).json(result.array())
+    }
 
-    const userId = cookiesData.id
-    const bookingDoc = await BookingModel.create({
-      place: placeId, user: userId, checkIn, checkOut, amountGuests: maxGuests, fullname, phoneNumber, price 
+    const { placeId, checkIn, checkOut, maxGuests,
+      fullname, phoneNumber, price, token 
+    } = matchedData(req)
+    jwt.verify(token, jwtSecret, {}, async (err, cookiesData) => {
+      if (err) throw err
+
+      const userId = cookiesData.id
+      const bookingDoc = await BookingModel.create({
+        place: placeId, user: userId, checkIn, checkOut, amountGuests: maxGuests, fullname, phoneNumber, price 
+      })
+      res.status(201).json(bookingDoc)
     })
-    res.status(201).json(bookingDoc)
-  })
-})
-
-router.get("/booking", async (req, res) => {
-  jwt.verify(req.cookies.token, jwtSecret, {}, async (err, cookiesData) => {
-    if (err) throw err
-
-    const bookings = await BookingModel.find({ user: cookiesData.id }).populate("place")
-    res.json(bookings)
-  })
-})
-
-router.get("/booking/:id", async (req, res) => {
-  const bookingDoc = await BookingModel.findById(req.params.id).populate("place")
-  if (bookingDoc) {
-    res.json(bookingDoc)
-  } else {
-    res.status(404).json()
   }
-})
+)
+
+router.get(
+  "/booking",
+  cookie("token").isJWT(), 
+  async (req, res) => {
+    const result = validationResult(req)
+    if (!result.isEmpty()) {
+      return res.status(422).json(result.array())
+    }
+    const { token } = matchedData(req)
+    jwt.verify(token, jwtSecret, {}, async (err, cookiesData) => {
+      if (err) throw err
+
+      const bookings = await BookingModel.find({ user: cookiesData.id }).populate("place")
+      res.json(bookings)
+    })
+  }
+)
+
+router.get(
+  "/booking/:id",
+  param("id").isLength({ min: 24, max:24 }), 
+  async (req, res) => {
+    const result = validationResult(req)
+    if (!result.isEmpty()) {
+      return res.status(422).json(result.array())
+    }
+
+    const { id } = matchedData(req)
+
+    const bookingDoc = await BookingModel.findById(id).populate("place")
+    if (bookingDoc) {
+      res.json(bookingDoc)
+    } else {
+      res.status(404).json()
+    }
+  }
+)
 
 module.exports = router

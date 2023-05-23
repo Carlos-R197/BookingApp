@@ -3,13 +3,13 @@ const router = express.Router()
 const multer = require("multer")
 const imageDownloader = require("image-downloader")
 const fs = require("fs")
-const { body } = require("express-validator")
+const { body, matchedData } = require("express-validator")
 
 router.post(
   "/upload-by-link",
   body("link").isURL(), 
   (req, res) => {
-  const { link } = req.body
+  const { link } = matchedData(req)
   const newName = Date.now() + ".jpg"
   imageDownloader.image({ url: link, dest: __dirname + "\\uploads\\" + newName })
     .then(({ filename }) => {

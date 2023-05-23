@@ -3,103 +3,151 @@ const router = express.Router()
 const PlaceModel = require("../models/Place.js")
 const jwt = require("jsonwebtoken")
 const jwtSecret = "fklfsd45sv4anewkrhk24234aloqjr9"
+const { body, validationResult, matchedData, cookie, param } = require("express-validator")
+const mongoose = require("mongoose")
 
-router.post("/place", (req, res) => {
-  const { title, address, addedPhotos,
-    description, perks, extraInfo, 
-    checkInTime, checkOutTime, maxGuests,
-    price
-  } = req.body
-  const { token } = req.cookies
-  jwt.verify(token, jwtSecret, {}, (err, cookiesData) => {
-    if (err) throw err
+const placeValidationChain = () => [
+  body("title").trim().isString().isLength({ min: 3}),
+  body("address").trim().isString().isLength({ min: 3 }),
+  body("addedPhotos").isArray(),
+  body("description").trim().isString().isLength({ min: 3}),
+  body("perks").isArray(),
+  body("extraInfo").trim().isString(),
+  body("checkInTime").isNumeric(),
+  body("checkOutTime").isNumeric(),
+  body("maxGuests").isInt({ min: 1, max: 20}),
+  body("price").isCurrency(),
+  cookie("token").isJWT()
+]
 
-    PlaceModel.create({
-      owner: cookiesData.id,
-      title, 
-      address, 
-      photos: addedPhotos, 
-      description, 
-      perks, 
-      extraInfo, 
-      checkIn: checkInTime, 
-      checkOut: checkOutTime, 
-      maxGuests,
-      price 
-    }).then(place => {
-        console.log(place)
-        res.status(201).json(place)
-      })
-      .catch(err => {
+const placeIdValidation = () => param("id").isLength({ min: 24, max: 24 })
+
+
+router.post(
+  "/place",
+  placeValidationChain(),
+  async (req, res) => {
+    const result = validationResult(req)
+    if (!result.isEmpty()) {
+      return res.status(422).json(result.array())
+    }
+    const { title, address, addedPhotos,
+      description, perks, extraInfo, 
+      checkInTime, checkOutTime, maxGuests,
+      price, token
+    } = matchedData(req)
+    jwt.verify(token, jwtSecret, {}, async (err, cookiesData) => {
+      if (err) throw err
+      try {
+        const placeDoc = await PlaceModel.create({
+          owner: cookiesData.id,
+          title, 
+          address, 
+          photos: addedPhotos, 
+          description, 
+          perks, 
+          extraInfo, 
+          checkIn: checkInTime, 
+          checkOut: checkOutTime, 
+          maxGuests,
+          price 
+        })
+        return res.status(201).json(placeDoc)
+      } catch (err) {
         console.log(err)
-        res.status(400).json()
-      })
-  })
-})
+        return res.status(400).json()
+      }
+    })
+  }
+)
 
-router.get("/userPlace", (req, res) => {
-  const { token } = req.cookies
-  jwt.verify(token, jwtSecret, {}, (err, cookiesData) => {
-    if (err) throw err
+router.get(
+  "/userPlace",
+  cookie("token").isJWT(), 
+  async (req, res) => {
+    var result = validationResult(req)
+    if (!result.isEmpty()) {
+      return res.status(422).json(result.array())
+    }
 
-    PlaceModel.find({ owner: cookiesData.id })
-      .then(places => {
-        res.status(200).json(places)
-      })
-  })
-})
+    const { token } = matchedData(req)
+    jwt.verify(token, jwtSecret, {}, async (err, cookiesData) => {
+      if (err) throw err
+
+      const placeDocs = await PlaceModel.find({ owner: cookiesData.id })
+      return res.status(200).json(placeDocs)
+    })
+  }
+)
 
 router.get("/place", async (req, res) => {
   const placeDocs = await PlaceModel.find({})
   res.json(placeDocs)
 })
 
-router.get("/place/:id", (req, res) => {
-  PlaceModel.findById(req.params.id)
-    .then(place => {
-      if (place === null) {
-        res.status(404).json()
+router.get(
+  "/place/:id",
+  placeIdValidation(),
+  async (req, res) => {
+    var result = validationResult(req)
+    if (!result.isEmpty()) {
+      return res.status(422).json(result.array())
+    }
+    const data = matchedData(req)
+    try {
+      const placeDoc = await PlaceModel.findById(data.id)
+      if (placeDoc === null) {
+        return res.status(404).json()
       } else {
-        res.json(place)
+        return res.json(placeDoc)
       }
-    })
-    .catch(err => {
+    } catch (err) {
       if (err instanceof mongoose.Error.CastError) {
-        res.status(422).json()
+        return res.status(422).json()
       } else {
         throw err
       }
-    })
-})
-
-router.put("/place/:id", async (req, res) => {
-  const { token } = req.cookies
-  const { title, address, addedPhotos,
-    description, perks, extraInfo, 
-    checkInTime, checkOutTime, maxGuests,
-    price
-  } = req.body
-  jwt.verify(token, jwtSecret, {}, async (err, cookiesData) => {
-    if (err) throw err
-
-    const placeDoc = await PlaceModel.findById(req.params.id)
-    if (placeDoc.owner.toString() !== cookiesData.id) {
-      res.status(403).json()
-    } else { 
-      placeDoc.title = title
-      placeDoc.address = address
-      placeDoc.photos = addedPhotos
-      placeDoc.description = description
-      placeDoc.perks = perks
-      placeDoc.extraInfo = extraInfo
-      placeDoc.checkIn  = checkInTime
-      placeDoc.checkOut = checkOutTime
-      placeDoc.maxGuests = maxGuests
-      placeDoc.price = price
-      await placeDoc.save()
-      res.json("Saved")
     }
-  })
-})
+  }
+)
+
+router.put(
+  "/place/:id",
+  placeValidationChain(),
+  placeIdValidation(), 
+  async (req, res) => {
+    const result = validationResult(req)
+    if (!result.isEmpty()) {
+      return res.status(422).json(result.array())
+    }
+
+    const { title, address, addedPhotos,
+      description, perks, extraInfo, 
+      checkInTime, checkOutTime, maxGuests,
+      price, token, id
+    } = matchedData(req)
+    jwt.verify(token, jwtSecret, {}, async (err, cookiesData) => {
+      if (err) throw err
+
+      const placeDoc = await PlaceModel.findById(id)
+      if (placeDoc.owner.toString() !== cookiesData.id) {
+        return res.status(403).json()
+      } else { 
+        placeDoc.title = title
+        placeDoc.address = address
+        placeDoc.photos = addedPhotos
+        placeDoc.description = description
+        placeDoc.perks = perks
+        placeDoc.extraInfo = extraInfo
+        placeDoc.checkIn  = checkInTime
+        placeDoc.checkOut = checkOutTime
+        placeDoc.maxGuests = maxGuests
+        placeDoc.price = price
+        await placeDoc.save()
+        res.json("Saved")
+      }
+    })
+  }
+)
 
 module.exports = router

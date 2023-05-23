@@ -2,6 +2,7 @@ import AccountNav from "../components/AccountNav";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { IMAGES_URL } from "../settings";
 
 export default function PlacesFormPage() {
   const { id } = useParams()
@@ -119,7 +120,7 @@ export default function PlacesFormPage() {
           <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 mt-2 gap-2">
             {addedPhotos.length > 0 && addedPhotos.map(photoName => (
               <div className="flex h-32 relative" key={photoName}>
-                <img className="rounded-2xl w-full object-cover" src={"http://localhost:4000/uploads/" + photoName}/>
+                <img className="rounded-2xl w-full object-cover" src={IMAGES_URL + photoName}/>
                 <button className="absolute bottom-1 right-1 cursor-pointer bg-black text-white bg-opacity-60 p-1 rounded-2xl"
                   onClick={() => removePhoto(photoName)} type="button">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">

@@ -59,7 +59,7 @@ router.post(
           return res.cookie("token", token).json(user)
         })
       } else {
-        return res.status(422).json("Incorrect password")
+        return res.status(422).json([{ msg: "Incorrect password" }])
       }
     } else {
       return res.status(404).json()

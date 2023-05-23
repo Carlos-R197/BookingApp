@@ -1,6 +1,7 @@
 import axios from "axios"
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
+import { IMAGES_URL } from "../settings"
 
 export default function IndexPage() {
   const [ places, setPlaces ] = useState([])
@@ -18,7 +19,7 @@ export default function IndexPage() {
     	{places.length > 0 && places.map((place, index) => (
         <Link key={index} to={"/place/" + place._id}>
           <div className="rounded-2xl mb-2">
-            <img className="rounded-2xl aspect-square" src={"http://localhost:4000/uploads/" + place.photos[0]}/>
+            <img className="rounded-2xl aspect-square" src={IMAGES_URL + place.photos[0]}/>
           </div>
           <h2 className="text-sm truncate">{place.title}</h2>
           <div>
