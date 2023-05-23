@@ -25,12 +25,20 @@ export default function BookingWidget({ place }) {
     const data = { placeId: place._id, checkIn, checkOut,
       maxGuests, fullname, phoneNumber, price: diffDays * place.price 
     }
-    const res = await axios.post("/booking", data)
-    if (res.status === 201) {
-      alert("Your booking has been processed successfully")
-      navigate("/account/bookings/" + res.data._id)
-    } else {
-      console.log("Something went wrong")
+    try {
+      const res = await axios.post("/booking", data)
+      if (res.status === 201) {
+        alert("Your booking has been processed successfully")
+        navigate("/account/bookings/" + res.data._id)
+      }
+    } catch (err) {
+      if (err.response.status == 422) {
+        let msg = ""
+        err.response.data.forEach(error => {
+          msg += error.msg + "\n"
+        })
+        alert(msg)
+      }
     }
   }
 
@@ -44,22 +52,26 @@ export default function BookingWidget({ place }) {
           <div className="flex  justify-center">
             <div className="p-2 px-4">
               <label htmlFor="check-in-picker">Check-in: </label>
-              <input id="check-in-picker" type="date" value={checkIn} onChange={ev => setCheckIn(ev.target.value)}/>
+              <input id="check-in-picker" type="date" value={checkIn} onChange={ev => setCheckIn(ev.target.value)}
+                min={1} max={24}/>
             </div>
             <div className="p-2 px-4 border-l-2">
               <label htmlFor="check-out-picker">Check-out: </label>
-              <input id="check-out-picker" type="date" value={checkOut} onChange={ev => setCheckOut(ev.target.value)}/>
+              <input id="check-out-picker" type="date" value={checkOut} onChange={ev => setCheckOut(ev.target.value)}
+                min={1} max={24}/>
             </div>
           </div>
           <div className="p-2 px-4 border-t-2">
               <label htmlFor="number-guests">Max number of guests: </label>
-              <input id="number-guests" type="number" value={maxGuests} onChange={ev => setMaxGuests(ev.target.value)}/>
+              <input id="number-guests" type="number" value={maxGuests} 
+                onChange={ev => setMaxGuests(ev.target.value)} min={1} max={20}/>
           </div>
           {diffDays > 0 && (
             <div>
               <div className="mb-2 px-4">
                 <label htmlFor="fullname-input">Full name: </label>
-                <input id="fullname-input" type="text" value={fullname} onChange={ev => setFullname(ev.target.value)}/>
+                <input id="fullname-input" type="text" value={fullname} 
+                  onChange={ev => setFullname(ev.target.value)} maxLength={50}/>
               </div>
               <div className="mb-2 px-4">
                   <label htmlFor="phone-number-input">Phone number: </label>

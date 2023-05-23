@@ -38,7 +38,7 @@ export default function BookingsPage() {
         <Link className="flex gap-4 bg-gray-200 overflow-hidden rounded-2xl border border-black shadow-md" key={index}
           to={"/account/bookings/" + booking._id}>
           <div className="w-48">
-            <img className="object-cover" src={IMAGES_URL + booking.place.photos[0]}/>
+            <img className="object-cover h-full w-full" src={IMAGES_URL + booking.place.photos[0]}/>
           </div>
           <div className="py-3 grow pr-3">
             <h2 className="text-xl font-semibold">{booking.place.title}</h2>

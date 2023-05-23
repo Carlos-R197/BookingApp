@@ -8,12 +8,12 @@ const { param, validationResult, matchedData, cookie, body } = require("express-
 router.post(
   "/booking",
   body("placeId").isLength({ min: 24, max: 24 }),
-  body("checkIn").isNumeric(),
-  body("checkOut").isNumeric(),
-  body("maxGuests").isInt({ min: 1, max: 20 }),
-  body("fullname").isString().trim().isLength({ min: 3, max: 50 }),
-  body("phoneNumber").isMobilePhone(),
-  body("price").isCurrency(),
+  body("checkIn").isDate().withMessage("Not a valid check-in date"),
+  body("checkOut").isDate().withMessage("Not a valid check-out date"),
+  body("maxGuests").isInt({ min: 1, max: 20 }).withMessage("Guest should be between 1 and 20"),
+  body("fullname").isString().trim().isLength({ min: 3, max: 50 }).withMessage("Name should be between 3 and 50 characters"),
+  body("phoneNumber").isMobilePhone().withMessage("Not a valid phone number"),
+  body("price").isCurrency().withMessage("Not a valid amount"),
   cookie("token").isJWT(),   
   async (req, res) => {
     const result = validationResult(req)
