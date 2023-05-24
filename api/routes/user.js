@@ -10,7 +10,7 @@ const bcryptSalt = bcrypt.genSaltSync(10)
 
 const nameRegex = /^[a-zA-Z\s'-]{2,50}$/
 const emailValidation = () => body("email").isEmail().withMessage("Email isn't valid")
-const passwordValidation = () => body("password").isStrongPassword().withMessage("Password isn't valid, must be between 8 and 50 chars, have one uppercase letter and one digit.")
+const passwordValidation = () => body("password").isStrongPassword().withMessage("Password isn't valid, must be between 8 and 50 chars, have one uppercase letter, one digit and one symbol.")
 
 router.post(
   "/register",
@@ -33,7 +33,8 @@ router.post(
       return res.status(201).json(user)
     } catch (err) {
       if (err.name === "MongoServerError" && err.code == 11000) {
-        return res.status(422).json("Email is alredy in usage")
+        const errors = [{ msg: "Email is already in usage" }] 
+        return res.status(422).json(errors)
       }
     }
   }
@@ -54,7 +55,7 @@ router.post(
     if (user) {
       const passOk = bcrypt.compareSync(password, user.password) 
       if (passOk) {
-        jwt.sign({ email: user.email, id: user._id }, jwtSecret, {}, (err, token) => {
+        jwt.sign({ email: user.email, id: user._id }, process.env.JWT_SECRET, {}, (err, token) => {
           if (err) throw err
           return res.cookie("token", token).json(user)
         })

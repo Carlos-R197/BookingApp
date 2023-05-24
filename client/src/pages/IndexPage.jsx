@@ -9,7 +9,7 @@ export default function IndexPage() {
   useEffect(() => {
     const getPlaces = async () => {
       const res = await axios.get("/place")
-      setPlaces([...res.data, ...res.data, ...res.data, ...res.data])
+      setPlaces(res.data)
     }
     getPlaces()
   }, [])

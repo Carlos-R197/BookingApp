@@ -22,6 +22,11 @@ export default function BookingWidget({ place }) {
   const diffDays = differenceInCalendarDays(new Date(checkOut), new Date(checkIn))
 
   async function bookPlace() {
+    if (!user) {
+      alert("You need to be logged in in order to book a place.")
+      return
+    }
+
     const data = { placeId: place._id, checkIn, checkOut,
       maxGuests, fullname, phoneNumber, price: diffDays * place.price 
     }

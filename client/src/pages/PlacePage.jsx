@@ -55,7 +55,7 @@ export default function PlacePage() {
           <BookingWidget place={place}/>
           {place.extraInfo && (
             <div>
-              <h2>Extra info</h2>
+              <h2 className="text-xl font-semibold">Extra info</h2>
               <p className="mt-2 text-small text-gray-700 leading-4">{place.extraInfo}</p>
             </div>
           )}

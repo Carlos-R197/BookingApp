@@ -8,12 +8,12 @@ const { getDataFromJWT } = require("./commons.js")
 const placeValidationChain = () => [
   body("title").trim().isString().isLength({ min: 3 }).withMessage("Title must be at least 3 characters long"),
   body("address").trim().isString().isLength({ min: 3 }).withMessage("Address must be at least 3 characters long"),
-  body("addedPhotos").isArray(),
+  body("addedPhotos").isArray({ min: 3, max: 10 }).withMessage("Must provide at least 3 images and no more than 10."),
   body("description").trim().isString().isLength({ min: 3 }).withMessage("Description must be at least 3 characters long"),
   body("perks").isArray(),
   body("extraInfo").trim().isString(),
-  body("checkInTime").isNumeric().withMessage("Not a valid hour"),
-  body("checkOutTime").isNumeric().withMessage("Not a valid hour"),
+  body("checkInTime").isInt({ gt: 0, lt: 23 }).withMessage("Not a valid hour"),
+  body("checkOutTime").isInt({ gt: 0, lt: 23 }).withMessage("Not a valid hour"),
   body("maxGuests").isInt({ min: 1, max: 20}).withMessage("Your place must accept between 1 and 20 guests"),
   body("price").isCurrency().withMessage("Not a valid amount"),
   cookie("token").isJWT()
@@ -77,16 +77,22 @@ router.get(
 // Should return all places except the ones owned by the user requesting them
 router.get(
   "/place",
-  cookie("token"), 
+  cookie("token").optional(), 
   async (req, res) => {
     const result = validationResult(req)
-    if (!result.isEmpty) {
+    if (!result.isEmpty()) {
       return res.status(400).json(result.array())
     }
 
     const { token } = matchedData(req)
-    const cookiesData = await getDataFromJWT(token)
-    const placeDocs = await PlaceModel.find({ owner: { $ne: cookiesData.id } })
+    let placeDocs
+    if (token) {
+      const cookiesData = await getDataFromJWT(token)
+      placeDocs = await PlaceModel.find({ owner: { $ne: cookiesData.id } })
+    }
+    else {
+      placeDocs = await PlaceModel.find({})
+    }
     res.json(placeDocs)
 })
 

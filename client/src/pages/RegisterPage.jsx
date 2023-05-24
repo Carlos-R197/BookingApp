@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import axios from "axios"
 import validator from "validator"
 import PasswordInput from "../components/PasswordInput"
@@ -10,6 +10,7 @@ export default function RegisterPage() {
   const [ usernameError, setUsernameError ] = useState("")
   const [ email, setEmail ] = useState("")
   const [ password, setPassword ] = useState("")
+  const navigate = useNavigate()
 
   async function registerUser(ev) {
     ev.preventDefault()
@@ -21,6 +22,7 @@ export default function RegisterPage() {
         password: password
       })
       alert("Registration successful. Now you can log in")
+      navigate("/login")
     } catch (err) {
       console.log(err)
       if (err.response.status == 422) {

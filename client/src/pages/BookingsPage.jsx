@@ -27,8 +27,13 @@ export default function BookingsPage() {
     }
   }
   
-  if (!bookings) {
-    return "You have no bookings"
+  if (bookings.length == 0) {
+    return (
+      <div>
+        <AccountNav /> 
+        <div className="text-center">You have no bookings</div> 
+      </div>
+    )
   }
 
   return (
